@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Barcode Scanner (Upload File)</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      text-align: center;
+      background-color: #f8f9fa;
+    }
+    .header {
+      padding: 20px;
+      background-color: #4a56e2;
+      color: #fff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .main-content {
+      padding: 50px 20px;
+    }
+    .main-content h1 {
+      color: #4a56e2;
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+    .main-content p {
+      color: #666;
+      font-size: 16px;
+      margin-bottom: 40px;
+    }
+    .upload-box {
+      border: 2px dashed #ccc;
+      border-radius: 10px;
+      padding: 40px;
+      background-color: #fff;
+      display: inline-block;
+      width: 80%;
+      max-width: 600px;
+    }
+    .upload-box input[type="file"] {
+      display: none;
+    }
+    .upload-box label {
+      display: block;
+      background-color: #4a56e2;
+      color: #fff;
+      padding: 15px 30px;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    .upload-box label:hover {
+      background-color: #3a46c2;
+    }
+    .result {
+      background-color: #e8f5e9;
+      color: #388e3c;
+      padding: 10px 15px;
+      border-radius: 5px;
+      font-size: 16px;
+      display: inline-block;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>Barcode Scanner - Upload File</h1>
+  </header>
+  <div class="main-content">
+    <p>Upload a barcode image to scan it.</p>
+    <div class="upload-box">
+      <input type="file" id="fileInput" accept="image/*" />
+      <label for="fileInput">Choose an Image</label>
+      <canvas id="canvas" style="display: none;"></canvas>
+      <div id="result" class="result">No barcode detected yet</div>
+    </div>
+  </div>
+  <script src="https://unpkg.com/@zxing/library@latest"></script>
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const canvas = document.getElementById('canvas');
+    const resultElement = document.getElementById('result');
+
+    fileInput.addEventListener('change', async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0, img.width, img.height);
+
+          const codeReader = new ZXing.BrowserBarcodeReader();
+          const imageData = ctx.getImageData(0, 0, img.width, img.height);
+
+          codeReader.decodeFromImage(undefined, canvas.toDataURL())
+            .then((result) => {
+              resultElement.textContent = `Detected: ${result.text}`;
+              resultElement.style.backgroundColor = '#e8f5e9';
+            })
+            .catch((err) => {
+              console.error(err);
+              resultElement.textContent = 'No barcode detected.';
+              resultElement.style.backgroundColor = '#ffebee';
+            });
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  </script>
+</body>
+</html>
